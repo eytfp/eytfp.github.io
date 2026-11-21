@@ -1,0 +1,8 @@
+node_modules/
+.vitepress/dist/
+.vitepress/cache/
+.DS_Store
+*.log
+
+# 一键脚本仅本地使用，不上传
+一键上传.bat

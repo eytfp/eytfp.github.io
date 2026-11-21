@@ -1,0 +1,7 @@
+:root {
+  --vp-c-brand-1: #185FA5;
+  --vp-c-brand-2: #378ADD;
+  --vp-c-brand-3: #85B7EB;
+}
+
+.VPHero .name { font-size: 32px; }
