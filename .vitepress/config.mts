@@ -64,7 +64,7 @@ function buildSidebar() {
         items.push({ text: label, link: f.link })
       }
     }
-    return { text: groupTitles[cat] || cat, items }
+    return { text: groupTitles[cat] || cat, collapsed: false, items }
   })
 }
 
@@ -84,7 +84,13 @@ export default withMermaid({
         if (!isArticle) return true
         const open = new state.Token('html_inline', '', 0)
         open.content = '<InlineToc />'
-        state.tokens.unshift(open)
+        // 插到第一个 h1 标题之后（正文标题下方），没有 h1 则退回最前面
+        let insertAt = -1
+        for (let i = 0; i < state.tokens.length; i++) {
+          const t = state.tokens[i]
+          if (t.type === 'heading_close' && t.tag === 'h1') { insertAt = i + 1; break }
+        }
+        state.tokens.splice(insertAt < 0 ? 0 : insertAt, 0, open)
         return true
       })
       // 兼容旧文章里手写的 [TOC]：吞掉它，避免显示成字面文字或与自动目录重复
