@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitepress'
+import { withMermaid } from 'vitepress-plugin-mermaid'
 import fs from 'node:fs'
 import path from 'node:path'
 
@@ -30,7 +30,7 @@ function copyAttachments() {
   }
 }
 
-export default defineConfig({
+export default withMermaid({
   title: 'Security Path Finding',
   description: 'Java 代码审计与内网攻防学习笔记',
   lang: 'zh-CN',
