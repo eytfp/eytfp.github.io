@@ -2,11 +2,13 @@
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { withBase } from 'vitepress'
 import { data as posts } from '../../data/posts.data'
+import { ancestors, isAncestor } from '../../shared/hierarchy'
 
 const props = defineProps<{ category?: string }>()
 
 const activeTag = ref('')
 const previewPost = ref<(typeof posts)[number] | null>(null)
+const collapsed = ref<Set<string>>(new Set())
 
 const scoped = computed(() =>
   props.category ? posts.filter(p => p.category === props.category) : posts
@@ -16,9 +18,24 @@ const tags = computed(() =>
   Array.from(new Set(scoped.value.flatMap(p => p.tags))).sort((a, b) => a.localeCompare(b, 'zh-CN'))
 )
 
-const list = computed(() =>
+const tagged = computed(() =>
   activeTag.value ? scoped.value.filter(p => p.tags.includes(activeTag.value)) : scoped.value
 )
+
+/** 是否有后代（决定显示折叠箭头） */
+const hasChildren = (num: string) => scoped.value.some(p => isAncestor(num, p.num))
+const isCollapsed = (num: string) => collapsed.value.has(num)
+function toggle(num: string) {
+  const next = new Set(collapsed.value)
+  next.has(num) ? next.delete(num) : next.add(num)
+  collapsed.value = next
+}
+
+/** 按标签筛选后，再隐藏被折叠节点的所有后代 */
+const list = computed(() => tagged.value.filter(p =>
+  !ancestors(p.num).some(a => collapsed.value.has(a))
+))
+
 
 const typeLabel = (ext: string) => {
   if (ext === 'md') return 'MD'
@@ -46,10 +63,14 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
               @click="activeTag = tag">{{ tag }}</button>
     </div>
 
-    <div v-for="post in list" :key="post.fileName" class="al-row">
+    <div v-for="post in list" :key="post.fileName" class="al-row"
+         :style="{ paddingLeft: (14 + post.level * 32) + 'px' }">
+      <button v-if="hasChildren(post.num)" class="al-fold" :aria-label="isCollapsed(post.num) ? '展开' : '折叠'"
+              @click="toggle(post.num)">{{ isCollapsed(post.num) ? '▸' : '▾' }}</button>
+      <span v-else class="al-fold-space"></span>
       <a class="al-main" :href="link(post.url)"
          :target="post.ext === 'md' ? undefined : '_blank'" :rel="post.ext === 'md' ? undefined : 'noopener'">
-        <span class="al-num">{{ post.num || '·' }}</span>
+        <span class="al-num" :class="{ 'is-parent': hasChildren(post.num) }">{{ post.num || '·' }}</span>
         <span class="al-type" :class="typeClass(post.ext)">{{ typeLabel(post.ext) }}</span>
         <span class="al-body">
           <span class="al-title">
@@ -96,6 +117,10 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
 .al-filter.active { background: var(--vp-c-brand-1); border-color: var(--vp-c-brand-1); color: #fff; }
 .al-row { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border: 1px solid var(--vp-c-divider); border-radius: 8px; margin-bottom: 8px; transition: border-color .2s; }
 .al-row:hover { border-color: var(--vp-c-brand-1); }
+.al-fold { flex: none; width: 16px; height: 20px; padding: 0; border: 0; background: transparent; color: var(--vp-c-text-3); font-size: 12px; cursor: pointer; }
+.al-fold:hover { color: var(--vp-c-brand-1); }
+.al-fold-space { flex: none; width: 16px; }
+.al-num.is-parent { color: var(--vp-c-brand-1); font-weight: 600; }
 .al-row:hover .al-title { color: var(--vp-c-brand-1); }
 .al-main { display: flex; flex: 1; min-width: 0; align-items: center; gap: 12px; text-decoration: none; color: var(--vp-c-text-1); }
 .al-num { font-family: var(--vp-font-family-mono); font-size: 12px; color: var(--vp-c-text-3); min-width: 32px; text-align: right; flex: none; }

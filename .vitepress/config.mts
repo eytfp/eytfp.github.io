@@ -1,15 +1,44 @@
 import { withMermaid } from 'vitepress-plugin-mermaid'
 import fs from 'node:fs'
 import path from 'node:path'
-import { SECTIONS, OK_ATTACH, scanSection } from './data/scan'
+import { SECTIONS, OK_ATTACH, scanSection, type ScannedPost } from './data/scan'
+import { parentNum } from './shared/hierarchy'
 
 const BASE = '/'
 
-function sidebarItems(key: string) {
-  return scanSection(key, process.cwd()).map((i) => {
-    const label = i.num ? `${i.pin ? '📌 ' : ''}${i.num}-${i.title}` : `${i.pin ? '📌 ' : ''}${i.title}`
-    return { text: label, link: i.url }
-  })
+interface SidebarNode {
+  text: string
+  link: string
+  collapsed?: boolean
+  items?: SidebarNode[]
+}
+
+// 侧栏树形折叠：父子关系复用 parentNum，与列表页完全同一套逻辑。
+// 有子级的节点用 VitePress 原生 items + collapsed（默认展开，与列表页一致）。
+function sidebarItems(key: string): SidebarNode[] {
+  const posts = scanSection(key, process.cwd())
+  const nums = new Set(posts.map(p => p.num))
+  const byParent = new Map<string, ScannedPost[]>()
+
+  for (const p of posts) {
+    const parent = parentNum(p.num)
+    // 父级不存在（如只有 1.1 没有 1）时提升为顶层，避免文章消失
+    const pk = parent && nums.has(parent) ? parent : ''
+    if (!byParent.has(pk)) byParent.set(pk, [])
+    byParent.get(pk)!.push(p)
+  }
+
+  const build = (pk: string): SidebarNode[] =>
+    (byParent.get(pk) || []).map((p) => {
+      const base = p.num ? `${p.pin ? '📌 ' : ''}${p.num}-${p.title}` : `${p.pin ? '📌 ' : ''}${p.title}`
+      // 无编号文章不可能有子级，直接不给 items，也避免 build('') 自递归
+      const children = p.num ? build(p.num) : []
+      return children.length
+        ? { text: base, link: p.url, collapsed: false, items: children }
+        : { text: base, link: p.url }
+    })
+
+  return build('')
 }
 
 // 构建时扫描文章目录，生成左侧全站文章导航（新文章自动出现，无需手动维护）

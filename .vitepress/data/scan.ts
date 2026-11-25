@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { numLevel, compareNumPath } from '../shared/hierarchy'
 
 // 文章分区：key 是相对仓库根的目录路径，label 用于左侧导航
 export const SECTIONS = [
@@ -21,6 +22,8 @@ export interface PostMeta {
 
 export interface ScannedPost extends PostMeta {
   num: string
+  /** 层级：小数点后的位数，1=0 / 1.1=1 / 1.11=2，用于列表与导航缩进 */
+  level: number
   title: string
   fileName: string
   ext: string
@@ -92,26 +95,11 @@ export function parseFileName(fileName: string) {
   return { num: '', title: base.trim(), ext, base }
 }
 
-/** 按点分段数值比较（版本号排序）：1.9 < 1.10 < 2，避免 1.10 被当成 1.1 */
-export function compareNum(a: string, b: string) {
-  if (!a && !b) return 0
-  if (!a) return 1
-  if (!b) return -1
-  const pa = a.split('.').map(Number)
-  const pb = b.split('.').map(Number)
-  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
-    const x = pa[i] ?? 0
-    const y = pb[i] ?? 0
-    if (x !== y) return x - y
-  }
-  return 0
-}
-
-/** 排序规则：置顶优先 → 编号分段升序 → 标题（中文排序） */
+/** 排序规则：置顶优先 → 编号树前序（父在前、子紧跟）→ 标题（中文排序） */
 export function sortPosts<T extends { num: string; title: string; pin: boolean }>(items: T[]): T[] {
   return [...items].sort((a, b) => {
     if (a.pin !== b.pin) return a.pin ? -1 : 1
-    const c = compareNum(a.num, b.num)
+    const c = compareNumPath(a.num, b.num)
     return c !== 0 ? c : a.title.localeCompare(b.title, 'zh-CN')
   })
 }
@@ -135,6 +123,7 @@ export function scanSection(key: string, root: string): ScannedPost[] {
       const reading = p.ext === 'md' ? countReading(fs.readFileSync(full, 'utf8')) : { words: 0, minutes: 0 }
       return {
         num: p.num,
+        level: numLevel(p.num),
         title: p.title,
         fileName: name,
         ext: p.ext,
