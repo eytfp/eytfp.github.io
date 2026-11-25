@@ -14,6 +14,10 @@ dist-sub/
 dist-en/
 dist-final/
 dist-check/
+dist-guide/
+dist-guide2/
+dist-desc/
+dist-desc2/
 
 # 旧的右侧导航组件（已改用左侧原生侧边栏），不上传
 .vitepress/theme/components/ArticleNav.vue

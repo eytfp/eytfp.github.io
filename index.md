@@ -6,19 +6,16 @@ hero:
   tagline: 内容可能有些错误，多多包涵
   actions:
     - theme: brand
-      text: Code Audit
-      link: /java-audit/
-    - theme: alt
-      text: Intranet Penetration & Defense
-      link: /intranet/
+      text: 开始阅读 →
+      link: '#all-posts'
 features:
   - icon: ☕
     title: Java Code Audit
-    details: 从环境搭建到漏洞原理，逐步建立从 Source 到 Sink 的审计思维。
+    details: Java 代码审计的学习记录，从入门开始。内容仅代表个人理解，准确性有待考究，欢迎指正。
     link: /java-audit/
   - icon: 🏰
     title: Intranet Penetration & Defense
-    details: 域环境认证、横向移动与隧道搭建，探索边界之内的世界。
+    details: 内网方向刚刚起步，内容后续更新，敬请期待。
     link: /intranet/
 ---
 
