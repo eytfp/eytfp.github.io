@@ -4,19 +4,75 @@ import path from 'node:path'
 
 const BASE = '/'
 const SITE_URL = 'https://eytfp.github.io'
-const CATEGORIES = ['java-audit', 'intranet']
 const OK_ATTACH = ['pdf', 'doc', 'docx']
+
+// 文章分区：key 是相对仓库根的目录路径，label 用于左侧导航
+const SECTIONS = [
+  { key: 'java-audit/theory', label: 'Theory', group: 'code' },
+  { key: 'java-audit/practice', label: 'Practice', group: 'code' },
+  { key: 'java-audit/misc', label: 'Misc', group: 'code' },
+  { key: 'intranet', label: 'Intranet Penetration & Defense', group: 'intranet' }
+]
+
+function parseFileName(fileName: string) {
+  const dot = fileName.lastIndexOf('.')
+  const ext = dot > 0 ? fileName.slice(dot + 1).toLowerCase() : ''
+  const base = dot > 0 ? fileName.slice(0, dot) : fileName
+  const m = base.match(/^(\d+)\s*[-－—]\s*(.+)$/)
+  if (m) return { num: Number(m[1]), title: m[2].trim(), ext, base }
+  return { num: Number.MAX_SAFE_INTEGER, title: base.trim(), ext, base }
+}
+
+function scanSection(key: string) {
+  const root = process.cwd()
+  const dir = path.join(root, key)
+  if (!fs.existsSync(dir)) return []
+  return fs.readdirSync(dir)
+    .filter((name) => {
+      if (name === 'index.md' || name.startsWith('.')) return false
+      const dot = name.lastIndexOf('.')
+      const ext = dot > 0 ? name.slice(dot + 1).toLowerCase() : ''
+      return ext === 'md' || OK_ATTACH.includes(ext)
+    })
+    .map((name) => {
+      const p = parseFileName(name)
+      const seg = p.ext === 'md' ? p.base : name
+      return { num: p.num, title: p.title, link: `/${key}/${seg}` }
+    })
+    .sort((a, b) => (a.num !== b.num ? a.num - b.num : a.title.localeCompare(b.title, 'zh-CN')))
+}
+
+function sidebarItems(key: string) {
+  return scanSection(key).map((i) => {
+    const label = i.num !== Number.MAX_SAFE_INTEGER ? `${i.num}-${i.title}` : i.title
+    return { text: label, link: i.link }
+  })
+}
+
+// 构建时扫描文章目录，生成左侧全站文章导航（新文章自动出现，无需手动维护）
+function buildSidebar() {
+  const codeItems = SECTIONS.filter(s => s.group === 'code').map(s => ({
+    text: s.label,
+    collapsed: false,
+    items: sidebarItems(s.key)
+  }))
+  const intranet = SECTIONS.find(s => s.group === 'intranet')!
+  return [
+    { text: 'Code Audit', collapsed: false, items: codeItems },
+    { text: 'Intranet Penetration & Defense', collapsed: false, items: sidebarItems(intranet.key) }
+  ]
+}
 
 function copyAttachments() {
   return {
     name: 'copy-attachments',
     closeBundle() {
-      const root = path.resolve(process.cwd())
+      const root = process.cwd()
       const dist = path.join(root, '.vitepress', 'dist')
       if (!fs.existsSync(dist)) return
-      for (const cat of CATEGORIES) {
-        const srcDir = path.join(root, cat)
-        const destDir = path.join(dist, cat)
+      for (const s of SECTIONS) {
+        const srcDir = path.join(root, s.key)
+        const destDir = path.join(dist, s.key)
         if (!fs.existsSync(srcDir)) continue
         for (const name of fs.readdirSync(srcDir)) {
           const dot = name.lastIndexOf('.')
@@ -30,61 +86,21 @@ function copyAttachments() {
   }
 }
 
-// 构建时扫描文章目录，生成左侧全站文章导航（新文章自动出现，无需手动维护）
-function buildSidebar() {
-  const root = path.resolve(process.cwd())
-  const groupTitles: Record<string, string> = {
-    'java-audit': '代码审计',
-    'intranet': '内网攻防'
-  }
-  return CATEGORIES.map((cat) => {
-    const dir = path.join(root, cat)
-    const items: { text: string; link: string }[] = []
-    if (fs.existsSync(dir)) {
-      const files = fs.readdirSync(dir)
-        .filter((name) => {
-          if (name === 'index.md' || name.startsWith('.')) return false
-          const dot = name.lastIndexOf('.')
-          const ext = dot > 0 ? name.slice(dot + 1).toLowerCase() : ''
-          return ext === 'md' || OK_ATTACH.includes(ext)
-        })
-        .map((name) => {
-          const dot = name.lastIndexOf('.')
-          const ext = dot > 0 ? name.slice(dot + 1).toLowerCase() : ''
-          const base = dot > 0 ? name.slice(0, dot) : name
-          const m = base.match(/^(\d+)\s*[-－—]\s*(.+)$/)
-          const num = m ? Number(m[1]) : Number.MAX_SAFE_INTEGER
-          const title = m ? m[2].trim() : base.trim()
-          const seg = ext === 'md' ? base : name
-          return { num, title, link: `/${cat}/${seg}` }
-        })
-        .sort((a, b) => (a.num !== b.num ? a.num - b.num : a.title.localeCompare(b.title, 'zh-CN')))
-      for (const f of files) {
-        const label = f.num !== Number.MAX_SAFE_INTEGER ? `${f.num}-${f.title}` : f.title
-        items.push({ text: label, link: f.link })
-      }
-    }
-    return { text: groupTitles[cat] || cat, collapsed: false, items }
-  })
-}
-
 export default withMermaid({
   title: 'Security Path Finding',
-  description: 'Java 代码审计与内网攻防学习笔记',
+  description: 'Notes on Java Code Audit and Intranet Penetration & Defense',
   lang: 'zh-CN',
   base: BASE,
   cleanUrls: true,
   markdown: {
     config: (md) => {
-      // 文章页自动在正文开头插入内联目录；分类页/首页不插入。
-      // 判断依据：相对路径形如 java-audit/xxx.md 或 intranet/xxx.md，且不是 index.md。
+      // 文章页自动在正文标题下插入内联目录；分类页/首页不插入。
       md.core.ruler.push('auto-inline-toc', (state) => {
         const rel = (state.env.relativePath || '').replace(/\\/g, '/')
-        const isArticle = CATEGORIES.some(c => rel.startsWith(`${c}/`)) && !rel.endsWith('/index.md')
+        const isArticle = SECTIONS.some(s => rel.startsWith(`${s.key}/`)) && !rel.endsWith('/index.md')
         if (!isArticle) return true
         const open = new state.Token('html_inline', '', 0)
         open.content = '<InlineToc />'
-        // 插到第一个 h1 标题之后（正文标题下方），没有 h1 则退回最前面
         let insertAt = -1
         for (let i = 0; i < state.tokens.length; i++) {
           const t = state.tokens[i]
@@ -106,9 +122,9 @@ export default withMermaid({
   ],
   themeConfig: {
     nav: [
-      { text: '首页', link: '/' },
-      { text: '代码审计', link: '/java-audit/' },
-      { text: '内网攻防', link: '/intranet/' }
+      { text: 'Home', link: '/' },
+      { text: 'Code Audit', link: '/java-audit/' },
+      { text: 'Intranet Penetration & Defense', link: '/intranet/' }
     ],
     docFooter: false,
     outline: false,

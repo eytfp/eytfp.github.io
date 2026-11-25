@@ -16,7 +16,7 @@ const typeLabel = (ext: string) => {
   return ext.toUpperCase()
 }
 const typeClass = (ext: string) => (ext === 'md' ? 't-md' : ext === 'pdf' ? 't-pdf' : 't-doc')
-const action = (ext: string) => (ext === 'md' ? '在线阅读 →' : '打开 / 下载 →')
+const action = (ext: string) => (ext === 'md' ? 'Read →' : 'Open / Download →')
 const link = (url: string, ext: string) => withBase(ext === 'md' ? url : url)
 </script>
 

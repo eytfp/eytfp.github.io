@@ -13,7 +13,7 @@ export interface PostItem {
 
 const dataDir = path.dirname(fileURLToPath(import.meta.url))
 const root = path.resolve(dataDir, '../..')
-const CATEGORIES = ['java-audit', 'intranet']
+const SECTIONS = ['java-audit/theory', 'java-audit/practice', 'java-audit/misc', 'intranet']
 const OK_EXT = ['md', 'pdf', 'doc', 'docx']
 
 function parseFileName(fileName: string) {
@@ -25,17 +25,17 @@ function parseFileName(fileName: string) {
   return { num: Number.MAX_SAFE_INTEGER, title: base.trim(), ext, base }
 }
 
-function scanCategory(category: string): PostItem[] {
+function scanSection(category: string): PostItem[] {
   const dir = path.join(root, category)
   if (!fs.existsSync(dir)) return []
   return fs.readdirSync(dir)
-    .filter(name => {
+    .filter((name) => {
       if (name === 'index.md' || name.startsWith('.')) return false
       const dot = name.lastIndexOf('.')
       const ext = dot > 0 ? name.slice(dot + 1).toLowerCase() : ''
       return OK_EXT.includes(ext)
     })
-    .map(name => {
+    .map((name) => {
       const p = parseFileName(name)
       const seg = p.ext === 'md' ? p.base : name
       return {
@@ -49,11 +49,11 @@ function scanCategory(category: string): PostItem[] {
     })
 }
 
-const all = CATEGORIES.flatMap(scanCategory)
+const all = SECTIONS.flatMap(scanSection)
   .sort((a, b) => (a.num !== b.num ? a.num - b.num : a.title.localeCompare(b.title, 'zh-CN')))
 
 export default {
-  watch: CATEGORIES.map(c => path.join(root, c)),
+  watch: SECTIONS.map(s => path.join(root, s)),
   load(): PostItem[] {
     return all
   }

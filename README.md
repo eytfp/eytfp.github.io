@@ -1,18 +1,18 @@
 # Security Path Finding
 
-记录 **Java 代码审计** 与 **内网攻防** 的学习过程，内容以 Markdown、PDF、Word 文档形式整理。内容可能有些错误，多多包涵。
+A learning journal on **Java Code Audit** and **Intranet Penetration & Defense**, with notes organized as Markdown, PDF and Word documents. Some content may contain errors — corrections are welcome.
 
-🔗 **在线阅读**：[https://eytfp.github.io/](https://eytfp.github.io/)
+🔗 **Read online**: [https://eytfp.github.io/](https://eytfp.github.io/)
 
-## 内容分类
+## Categories
 
-| 目录 | 说明 |
+| Directory | Description |
 | --- | --- |
-| `java-audit/` | Java 代码审计：环境搭建、框架原理、漏洞分析 |
-| `intranet/` | 内网攻防：域认证、横向移动、隧道搭建 |
+| `java-audit/` | Java code audit: environment setup, framework internals, vulnerability analysis |
+| `intranet/` | Intranet penetration & defense: domain authentication, lateral movement, tunneling |
 
-每篇文章以数字开头命名（如 `1-Java中servelet审计.md`），数字决定阅读顺序。`.md` 可直接在线阅读，`.pdf` / `.doc` 可打开或下载原件。
+Each post is named with a leading number (e.g. `1-Java-servlet-audit.md`); the number determines the reading order. `.md` files can be read online, while `.pdf` / `.doc` files can be opened or downloaded.
 
-## 关于
+## About
 
-安全学习路上的持续记录，欢迎交流指正。
+An ongoing record of a security learning journey. Feedback and discussions are welcome.
