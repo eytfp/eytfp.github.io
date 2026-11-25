@@ -26,4 +26,4 @@ features:
 
 <ArticleList />
 
-> 说明：文章由文件名开头的数字排序，标题取自数字后面的部分。`.md` 可在线阅读，`.pdf` / `.doc` 点击打开或下载原文件。
+> Posts are sorted by the leading number in the filename; the title follows it. `.md` files can be read online; `.pdf` / `.doc` files open or download directly.

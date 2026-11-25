@@ -1,5 +1,5 @@
 # Misc
 
-> 不属于理论与实践的代码审计相关内容。
+> Miscellaneous code audit notes outside theory and practice.
 
 <ArticleList category="java-audit/misc" />

@@ -1,5 +1,5 @@
 # Intranet Penetration & Defense
 
-> 探索边界之内的世界，记录域环境学习与渗透基础。
+> Exploring what lies beyond the perimeter — domain environments and penetration fundamentals.
 
 <ArticleList category="intranet" />

@@ -1,5 +1,5 @@
 # Practice
 
-> 真实漏洞的分析与复现、代码审计实战。
+> Analysis and reproduction of real-world vulnerabilities, with hands-on audit notes.
 
 <ArticleList category="java-audit/practice" />
