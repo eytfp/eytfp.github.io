@@ -6,19 +6,7 @@ node_modules/
 
 # 构建临时文件与本地验证目录，不上传
 *.timestamp-*.mjs
-dist-nav/
-dist-verify/
-dist-toc/
-dist-fix/
-dist-sub/
-dist-en/
-dist-final/
-dist-check/
-dist-guide/
-dist-guide2/
-dist-desc/
-dist-desc2/
-dist-link/
+dist-*/
 
 # 旧的右侧导航组件（已改用左侧原生侧边栏），不上传
 .vitepress/theme/components/ArticleNav.vue

@@ -1,51 +1,14 @@
 import { withMermaid } from 'vitepress-plugin-mermaid'
 import fs from 'node:fs'
 import path from 'node:path'
+import { SECTIONS, OK_ATTACH, scanSection } from './data/scan'
 
 const BASE = '/'
-const SITE_URL = 'https://eytfp.github.io'
-const OK_ATTACH = ['pdf', 'doc', 'docx']
-
-// 文章分区：key 是相对仓库根的目录路径，label 用于左侧导航
-const SECTIONS = [
-  { key: 'java-audit/theory', label: 'Theory', group: 'code' },
-  { key: 'java-audit/practice', label: 'Practice', group: 'code' },
-  { key: 'java-audit/misc', label: 'Misc', group: 'code' },
-  { key: 'intranet', label: 'Intranet Penetration & Defense', group: 'intranet' }
-]
-
-function parseFileName(fileName: string) {
-  const dot = fileName.lastIndexOf('.')
-  const ext = dot > 0 ? fileName.slice(dot + 1).toLowerCase() : ''
-  const base = dot > 0 ? fileName.slice(0, dot) : fileName
-  const m = base.match(/^(\d+)\s*[-－—]\s*(.+)$/)
-  if (m) return { num: Number(m[1]), title: m[2].trim(), ext, base }
-  return { num: Number.MAX_SAFE_INTEGER, title: base.trim(), ext, base }
-}
-
-function scanSection(key: string) {
-  const root = process.cwd()
-  const dir = path.join(root, key)
-  if (!fs.existsSync(dir)) return []
-  return fs.readdirSync(dir)
-    .filter((name) => {
-      if (name === 'index.md' || name.startsWith('.')) return false
-      const dot = name.lastIndexOf('.')
-      const ext = dot > 0 ? name.slice(dot + 1).toLowerCase() : ''
-      return ext === 'md' || OK_ATTACH.includes(ext)
-    })
-    .map((name) => {
-      const p = parseFileName(name)
-      const seg = p.ext === 'md' ? p.base : name
-      return { num: p.num, title: p.title, link: `/${key}/${seg}` }
-    })
-    .sort((a, b) => (a.num !== b.num ? a.num - b.num : a.title.localeCompare(b.title, 'zh-CN')))
-}
 
 function sidebarItems(key: string) {
-  return scanSection(key).map((i) => {
-    const label = i.num !== Number.MAX_SAFE_INTEGER ? `${i.num}-${i.title}` : i.title
-    return { text: label, link: i.link }
+  return scanSection(key, process.cwd()).map((i) => {
+    const label = i.num ? `${i.pin ? '📌 ' : ''}${i.num}-${i.title}` : `${i.pin ? '📌 ' : ''}${i.title}`
+    return { text: label, link: i.url }
   })
 }
 
@@ -63,12 +26,17 @@ function buildSidebar() {
   ]
 }
 
+// 把 pdf/doc/docx 附件复制进实际构建目录（跟随 outDir，便于临时目录验证）
 function copyAttachments() {
+  let outDir = '.vitepress/dist'
   return {
     name: 'copy-attachments',
+    configResolved(config: { build: { outDir: string } }) {
+      outDir = config.build.outDir
+    },
     closeBundle() {
       const root = process.cwd()
-      const dist = path.join(root, '.vitepress', 'dist')
+      const dist = path.resolve(root, outDir)
       if (!fs.existsSync(dist)) return
       for (const s of SECTIONS) {
         const srcDir = path.join(root, s.key)
@@ -84,6 +52,17 @@ function copyAttachments() {
       }
     }
   }
+}
+
+// 中文搜索分词：英文按词，中文按单字 + 相邻双字（bigram），兼顾"代码""代码审计"等查询
+function tokenizeForCJK(text: string): string[] {
+  const tokens: string[] = []
+  const latin = text.match(/[A-Za-z0-9][A-Za-z0-9._+#-]*/g) || []
+  for (const word of latin) tokens.push(word.toLowerCase())
+  const cjk = text.match(/[\u4e00-\u9fff\u3400-\u4dbf]/g) || []
+  for (const ch of cjk) tokens.push(ch)
+  for (let i = 0; i < cjk.length - 1; i++) tokens.push(cjk[i] + cjk[i + 1])
+  return tokens
 }
 
 export default withMermaid({
@@ -126,10 +105,41 @@ export default withMermaid({
       { text: 'Code Audit', link: '/java-audit/' },
       { text: 'Intranet Penetration & Defense', link: '/intranet/' }
     ],
-    docFooter: false,
+    search: {
+      provider: 'local',
+      options: {
+        translations: {
+          button: { buttonText: '搜索文章...', buttonAriaLabel: '搜索文章' },
+          modal: {
+            displayDetails: '显示详情',
+            resetButtonTitle: '清除查询',
+            backButtonTitle: '返回',
+            noResultsText: '没有找到相关内容',
+            footer: {
+              selectText: '选择',
+              selectKeyAriaLabel: '选择键',
+              navigateText: '切换',
+              navigateUpKeyAriaLabel: '向上键',
+              navigateDownKeyAriaLabel: '向下键',
+              closeText: '关闭',
+              closeKeyAriaLabel: '关闭键'
+            }
+          }
+        },
+        miniSearch: {
+          options: { tokenize: tokenizeForCJK },
+          // 中文按单字+双字分词，必须关闭模糊且用 AND，否则单字会误匹配任意汉字
+          searchOptions: { prefix: true, fuzzy: 0, combineWith: 'AND', boost: { title: 3 } }
+        }
+      }
+    },
+    docFooter: { prev: '上一篇', next: '下一篇' },
     outline: false,
     sidebar: buildSidebar(),
-    lastUpdated: false,
+    lastUpdated: {
+      text: '更新于',
+      formatOptions: { year: 'numeric', month: '2-digit', day: '2-digit' }
+    },
     footer: { message: '内容可能有些错误，多多包涵', copyright: 'Copyright © 2026 eytfp' }
   },
   vite: { plugins: [copyAttachments()] }
