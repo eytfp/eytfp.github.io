@@ -7,7 +7,7 @@ hero:
   actions:
     - theme: brand
       text: 开始阅读 →
-      link: '#all-posts'
+      link: /java-audit/
 features:
   - icon: ☕
     title: Java Code Audit
