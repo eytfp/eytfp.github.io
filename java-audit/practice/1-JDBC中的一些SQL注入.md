@@ -64,15 +64,15 @@ Statement 的方法本身就不安全，Statement 的做法：将用户输入直
 
 （1）其实就一步，全文搜索createStatement()这个不安全方法，Ctrl+Shift+F
 
-![image-20261125083328956](D:\图片\Saved Pictures - 副本\image-20261125083328956.png)
+![image-20261125083328956](https://cdn.jsdelivr.net/gh/eytfp/Bed/img/image-20261125083328956.png)
 
 （2）跳转到src/main/java/com/example/demo/jdbcinjection/JdbcDynamicController.java
 
-![image-20261125083525969](D:\图片\Saved Pictures - 副本\image-20261125083525969.png)
+![image-20261125083525969](https://cdn.jsdelivr.net/gh/eytfp/Bed/img/image-20261125083525969.png)
 
 这里是数据库的连接用户名和密码，这里记得改成和自己数据库一样，如果不对去src/main/resources/application.properties这里修改，不然启动不了
 
-![image-20261125083842295](D:\图片\Saved Pictures - 副本\image-20261125083842295.png)
+![image-20261125083842295](https://cdn.jsdelivr.net/gh/eytfp/Bed/img/image-20261125083842295.png)
 
 这里就是这次SQL注入的主要原因了，可以说非常简单，为了这盘醋包的这盘饺子。解释一下原因吧，如下
 
@@ -100,7 +100,7 @@ Statement 的方法本身就不安全，Statement 的做法：将用户输入直
 
 这中代码太少，不调试也行，调试看的更清楚
 
-![image-20261125090332164](D:\图片\Saved Pictures - 副本\image-20261125090332164.png)
+![image-20261125090332164](https://cdn.jsdelivr.net/gh/eytfp/Bed/img/image-20261125090332164.png)
 
 ```
 String sql = "select * from users where id = '" + id + "'";
@@ -108,13 +108,13 @@ String sql = "select * from users where id = '" + id + "'";
 
 这个就比较明显了，可以用字符型注入，则说明单引号闭合前面，不断测试，如果发现报错码是500，说明SQL 结构被你的输入破坏了，这反而说明方向对了
 
-在37行下个断点，访问[localhost:7089/sqli/jdbc/dynamic?id=1](http://localhost:7089/sqli/jdbc/dynamic?id=1)
+在37行下个断点，访问 http://localhost:7089/sqli/jdbc/dynamic?id=1
 
-![image-20261125133410573](D:\图片\Saved Pictures - 副本\image-20261125133410573.png)
+![image-20261125133410573](https://cdn.jsdelivr.net/gh/eytfp/Bed/img/image-20261125133410573.png)
 
 访问http://localhost:7089/sqli/jdbc/dynamic?id=1' OR '1'='1
 
-![image-20261125133838199](D:\图片\Saved Pictures - 副本\image-20261125133838199.png)
+![image-20261125133838199](https://cdn.jsdelivr.net/gh/eytfp/Bed/img/image-20261125133838199.png)
 
 就这样一个一个测试
 
@@ -131,9 +131,9 @@ String sql = "select * from users where id = '" + id + "'";
 | 查表的字段 | `?id=-1' union select 1,column_name,3 from information_schema.columns where table_schema=database() and table_name='users'--+` |
 | 拖账号密码 | `?id=-1' union select 1,username,password from users--+`     |
 
-![image-20261125090621147](D:\图片\Saved Pictures - 副本\image-20261125090621147.png)
+![image-20261125090621147](https://cdn.jsdelivr.net/gh/eytfp/Bed/img/image-20261125090621147.png)
 
-![image-20261125090646119](D:\图片\Saved Pictures - 副本\image-20261125090646119.png)
+![image-20261125090646119](https://cdn.jsdelivr.net/gh/eytfp/Bed/img/image-20261125090646119.png)
 
 后面就不展示了
 
@@ -152,9 +152,9 @@ String sql = "select * from users where id = '" + id + "'";
 
 **400（Bad Request）**：你发过去的请求本身有毛病——参数格式不对、缺了必填项、JSON 写错了、类型对不上。比如接口要 `id=1` 这种数字，你偏要传 `id=abc`，服务器解析不了，直接回 400。
 
-![image-20261125091438368](D:\图片\Saved Pictures - 副本\image-20261125091438368.png)
+![image-20261125091438368](https://cdn.jsdelivr.net/gh/eytfp/Bed/img/image-20261125091438368.png)
 
-![image-20261125091620684](D:\图片\Saved Pictures - 副本\image-20261125091620684.png)
+![image-20261125091620684](https://cdn.jsdelivr.net/gh/eytfp/Bed/img/image-20261125091620684.png)
 
 
 
@@ -170,25 +170,25 @@ String sql = "select * from users where id = '" + id + "'";
 
 JdbcPrepareStatement.java里面有两个接口，都是预编译，一个安全，一个不安全，先看不安全的接口，我们关注到**/jdbc/preparestaement**这个接口
 
-![image-20261125145932495](D:\图片\Saved Pictures - 副本\image-20261125145932495.png)
+![image-20261125145932495](https://cdn.jsdelivr.net/gh/eytfp/Bed/img/image-20261125145932495.png)
 
 这里很直观，关键代码如下，这里的核心问题是：prepareStatement() 只是被调用了，参数化并没有生效。 sql 在传入之前已由 '"+ username +"' 完成拼接，username 作为 SQL 文本的一部分进入预编译语句，而非绑定参数。数据库预编译的是一条结构已被用户输入改写的语句，引号可被闭合、OR/UNION 可被注入，其安全性等价于 Statement.executeQuery(拼接字符串)。
 
-![image-20261125150559632](D:\图片\Saved Pictures - 副本\image-20261125150559632.png)
+![image-20261125150559632](https://cdn.jsdelivr.net/gh/eytfp/Bed/img/image-20261125150559632.png)
 
 ### 开始调试，在58行下断点
 
 *http://localhost:7089/sqli/jdbc/preparestaement?username=admin*
 
-![image-20261125154538665](D:\图片\Saved Pictures - 副本\image-20261125154538665.png)
+![image-20261125154538665](https://cdn.jsdelivr.net/gh/eytfp/Bed/img/image-20261125154538665.png)
 
 发现其还是直接拼接，开始注入*http://localhost:7089/sqli/jdbc/preparestaement?username=admin*' OR '1'='1
 
 观察要执行的sql语句，其逻辑已经被我们修改，说明SQL注入漏洞存在。
 
-![image-20261125161326001](D:\图片\Saved Pictures - 副本\image-20261125161326001.png)
+![image-20261125161326001](https://cdn.jsdelivr.net/gh/eytfp/Bed/img/image-20261125161326001.png)
 
-![image-20261125154847556](D:\图片\Saved Pictures - 副本\image-20261125154847556.png)
+![image-20261125154847556](https://cdn.jsdelivr.net/gh/eytfp/Bed/img/image-20261125154847556.png)
 
 一共只有两个数据，这是就不再继续了，这个确实挺简单的
 
@@ -198,7 +198,7 @@ JdbcPrepareStatement.java里面有两个接口，都是预编译，一个安全�
 
 看src/main/java/com/example/demo/jdbcinjection/JdbcPrepareStatement.java下的**/jdbc/sec**接口
 
-![image-20261125155516948](D:\图片\Saved Pictures - 副本\image-20261125155516948.png)
+![image-20261125155516948](https://cdn.jsdelivr.net/gh/eytfp/Bed/img/image-20261125155516948.png)
 
 这段代码之所以安全是因为这里sql 是常量字符串，? 只标记"此处将填入一个值"，不含任何用户数据。预编译在绑定参数之前完成，数据库先确定执行计划；随后 setString(1, username) 通过 JDBC 参数通道单独传值，该值不参与 SQL 文本解析，仅作为标量比较。因此输入中的 '、OR、UNION 等全部被当作普通字符，无法闭合引号或改写语法——' OR '1'='1 只会去匹配一个恰好叫这串文字的用户名，恒真条件不成立。
 
@@ -206,7 +206,7 @@ JdbcPrepareStatement.java里面有两个接口，都是预编译，一个安全�
 
 http://localhost:7089/sqli/jdbc/sec?username=admin%27%20OR%20%271%27=%271
 
-![image-20261125160927451](D:\图片\Saved Pictures - 副本\image-20261125160927451.png)
+![image-20261125160927451](https://cdn.jsdelivr.net/gh/eytfp/Bed/img/image-20261125160927451.png)
 
 这里发现我们的OR也被当成字符串了，sql语句仍然没变，现在这个确实安全了，暂时安全了，普通的注入已经被防住了
 
@@ -228,17 +228,17 @@ http://localhost:7089/sqli/jdbc/sec?username=admin%27%20OR%20%271%27=%271
 
 我们来查看src/main/java/com/example/demo/jdbcinjection/JdbcOrderBy.java处的代码
 
-![image-20261126074442314](D:\图片\Saved Pictures - 副本\image-20261126074442314.png)
+![image-20261126074442314](https://cdn.jsdelivr.net/gh/eytfp/Bed/img/image-20261126074442314.png)
 
 这里是被迫使用了动态拼接，因为order by是字段名，不能使用预编译，不然数据库会认为其是字符串
 
 1开始调试,在第三十三行处下一个断点,*http://localhost:7089/sqli/jdbc/orderby?id=1*,访问正常情况还行
 
-![image-20261126075041048](D:\图片\Saved Pictures - 副本\image-20261126075041048.png)
+![image-20261126075041048](https://cdn.jsdelivr.net/gh/eytfp/Bed/img/image-20261126075041048.png)
 
 *http://localhost:7089/sqli/jdbc/orderby?id=1*' OR '1'='1，逻辑被改变了
 
-![image-20261126075240801](D:\图片\Saved Pictures - 副本\image-20261126075240801.png)
+![image-20261126075240801](https://cdn.jsdelivr.net/gh/eytfp/Bed/img/image-20261126075240801.png)
 
 ## （2）同时还有几种情况和修复代码如下
 

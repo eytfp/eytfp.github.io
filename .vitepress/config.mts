@@ -99,7 +99,10 @@ export default withMermaid({
   description: 'Notes on Java Code Audit and Intranet Penetration & Defense',
   lang: 'zh-CN',
   base: BASE,
+  outDir: 'dist-deadlink-fix',
   cleanUrls: true,
+  // 忽略本地调试地址（localhost / 127.0.0.1）的死链；其它失效链接仍会正常报错
+  ignoreDeadLinks: [/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$|\?|#)/],
   markdown: {
     config: (md) => {
       // 文章页自动在正文标题下插入内联目录；分类页/首页不插入。
