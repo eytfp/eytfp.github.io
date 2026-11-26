@@ -104,19 +104,24 @@ export default withMermaid({
   ignoreDeadLinks: [/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$|\?|#)/],
   markdown: {
     config: (md) => {
-      // 文章页自动在正文标题下插入内联目录；分类页/首页不插入。
+      // 文章页自动插入内联目录；分类页/首页不插入。
+      // 多个一级标题（长文分章节）→ 目录放正文最前面；只有一个（或无）→ 放在第一个标题后。
       md.core.ruler.push('auto-inline-toc', (state) => {
         const rel = (state.env.relativePath || '').replace(/\\/g, '/')
         const isArticle = SECTIONS.some(s => rel.startsWith(`${s.key}/`)) && !rel.endsWith('/index.md')
         if (!isArticle) return true
         const open = new state.Token('html_inline', '', 0)
         open.content = '<InlineToc />'
-        let insertAt = -1
+        // 统计 h1 数量
+        let h1Count = 0
+        let firstH1Close = -1
         for (let i = 0; i < state.tokens.length; i++) {
           const t = state.tokens[i]
-          if (t.type === 'heading_close' && t.tag === 'h1') { insertAt = i + 1; break }
+          if (t.type === 'heading_open' && t.tag === 'h1') h1Count++
+          if (t.type === 'heading_close' && t.tag === 'h1' && firstH1Close < 0) firstH1Close = i
         }
-        state.tokens.splice(insertAt < 0 ? 0 : insertAt, 0, open)
+        const insertAt = h1Count > 1 ? 0 : (firstH1Close >= 0 ? firstH1Close + 1 : 0)
+        state.tokens.splice(insertAt, 0, open)
         return true
       })
       // 兼容旧文章里手写的 [TOC]：吞掉它，避免显示成字面文字或与自动目录重复

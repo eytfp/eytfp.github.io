@@ -33,7 +33,8 @@ const meta = computed(() => {
 
 function collect() {
   nextTick(() => {
-    const heads = document.querySelectorAll<HTMLElement>('.vp-doc h2, .vp-doc h3')
+    // 收集 h1~h3：一级标题常用来给长文分章节（如"1-JDBC..."），必须进目录当分组
+    const heads = document.querySelectorAll<HTMLElement>('.vp-doc h1, .vp-doc h2, .vp-doc h3')
     items.value = Array.from(heads).map(h => ({
       text: (h.textContent || '').replace('¶', '').trim(),
       id: h.id,
@@ -51,7 +52,8 @@ watch(() => route.path, () => setTimeout(collect, 60))
     <div v-if="meta" class="inline-toc-meta">{{ meta }}</div>
     <div v-if="items.length" class="inline-toc-title">目录</div>
     <a v-for="(item, i) in items" :key="i" :href="`#${item.id}`" class="inline-toc-item"
-       :style="{ paddingLeft: `${(item.level - 2) * 18}px` }">
+       :class="{ 'is-group': item.level === 1 }"
+       :style="{ paddingLeft: `${(item.level - 1) * 18}px` }">
       {{ item.text }}
     </a>
   </nav>
@@ -86,4 +88,10 @@ watch(() => route.path, () => setTimeout(collect, 60))
   text-decoration: none;
 }
 .inline-toc-item:hover { color: var(--vp-c-brand-1); }
+.inline-toc-item.is-group {
+  font-weight: 600;
+  color: var(--vp-c-brand-1);
+  margin-top: 6px;
+}
+.inline-toc-item.is-group:first-of-type { margin-top: 0; }
 </style>
