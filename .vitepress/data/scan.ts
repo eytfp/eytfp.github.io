@@ -4,10 +4,10 @@ import { numLevel, compareNumPath } from '../shared/hierarchy'
 
 // 文章分区：key 是相对仓库根的目录路径，label 用于左侧导航
 export const SECTIONS = [
-  { key: 'java-audit/theory', label: 'Theory', group: 'code' },
-  { key: 'java-audit/practice', label: 'Practice', group: 'code' },
-  { key: 'java-audit/misc', label: 'Misc', group: 'code' },
-  { key: 'intranet', label: 'Intranet Penetration & Defense', group: 'intranet' }
+  { key: 'java-audit/theory', label: '理论', group: 'code' },
+  { key: 'java-audit/practice', label: '实践', group: 'code' },
+  { key: 'java-audit/misc', label: '其它', group: 'code' },
+  { key: 'intranet', label: '内网攻防', group: 'intranet' }
 ]
 
 export const OK_ATTACH = ['pdf', 'doc', 'docx']

@@ -1,21 +1,21 @@
-# Java Code Audit
+# Java 代码审计
 
-> From environment setup to framework vulnerabilities — building an audit mindset step by step. Posts are grouped into **Theory / Practice / Misc**.
+> 从环境搭建到框架漏洞，一步步建立审计思维。文章分为**理论 / 实践 / 其它**三类。
 
-## Theory
+## 理论
 
-Fundamentals, framework internals and environment setup. See [Theory](/java-audit/theory/).
+基础原理、框架内部机制与环境搭建。查看[理论文章](/java-audit/theory/)。
 
 <ArticleList category="java-audit/theory" />
 
-## Practice
+## 实践
 
-Real-world vulnerability analysis and reproduction. See [Practice](/java-audit/practice/).
+真实漏洞分析与复现。查看[实践文章](/java-audit/practice/)。
 
 <ArticleList category="java-audit/practice" />
 
-## Misc
+## 其它
 
-见[Misc](/java-audit/misc/)。
+理论和实践之外的零散笔记。查看[其它文章](/java-audit/misc/)。
 
 <ArticleList category="java-audit/misc" />

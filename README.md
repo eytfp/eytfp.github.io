@@ -1,21 +1,22 @@
-# Security Path Finding
+# 安全学习之路
 
-A learning journal on **Java Code Audit** and **Intranet Penetration & Defense**, with notes organized as Markdown, PDF and Word documents. Some content may contain errors — corrections are welcome.
+记录 **Java 代码审计** 与 **内网攻防** 的学习过程，内容以 Markdown 笔记为主。个人理解难免有错，欢迎指正。
 
-🔗 **Read online**: [https://eytfp.github.io/](https://eytfp.github.io/)
+🔗 **在线阅读**：[https://eytfp.github.io/](https://eytfp.github.io/)
 
-## Categories
+## 内容分类
 
-| Directory | Description |
+| 目录 | 说明 |
 | --- | --- |
-| `java-audit/` | Java code audit: environment setup, framework internals, vulnerability analysis |
-| `intranet/` | Intranet penetration & defense: domain authentication, lateral movement, tunneling |
+| `java-audit/` | Java 代码审计：环境搭建、框架原理、漏洞分析 |
+| `intranet/` | 内网攻防：域认证、横向移动、隧道技术 |
 
-Each post is named with a leading number (e.g. `1-Java-servlet-audit.md`); the number determines the reading order. Both integers and decimals work (`1.1-xxx.md`, `1.10-xxx.md`), sorted by numeric segments (`1.9` before `1.10`). `.md` files can be read online, while `.pdf` files also have an inline preview; `.doc` / `.docx` files can be opened or downloaded.
+文章按文件名开头的数字编号排序（如 `1-Java基础.md`），支持小数编号（`1.1`、`1.10`）。在线可阅读 Markdown 文章，层级编号会自动生成可折叠目录。
 
-### Frontmatter (optional)
+## 写作说明
 
-Add frontmatter at the top of a Markdown post to pin it or add tags:
+- 文件名用 `数字-标题.md` 格式，放进对应分类目录即可，导航和列表会自动更新。
+- 需要置顶或打标签时，在文章开头加 frontmatter：
 
 ```yaml
 ---
@@ -24,8 +25,8 @@ tags: [基础, Java]
 ---
 ```
 
-`pin: true` puts the post first in its section. Tags automatically appear as filters on the article list. Article pages also show estimated reading time and the last-updated date. The top search box supports Chinese keywords (shortcut: Ctrl/Cmd + K).
+`pin: true` 让文章排在同级最前；标签会显示在列表页的筛选栏。文章页会自动显示阅读时长、更新日期和目录。
 
-## About
+## 关于
 
-An ongoing record of a security learning journey. Feedback and discussions are welcome.
+一份持续更新的安全学习笔记，欢迎交流讨论。

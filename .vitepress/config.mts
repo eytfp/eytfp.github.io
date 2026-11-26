@@ -50,8 +50,8 @@ function buildSidebar() {
   }))
   const intranet = SECTIONS.find(s => s.group === 'intranet')!
   return [
-    { text: 'Code Audit', collapsed: false, items: codeItems },
-    { text: 'Intranet Penetration & Defense', collapsed: false, items: sidebarItems(intranet.key) }
+  { text: '代码审计', collapsed: false, items: codeItems },
+  { text: '内网攻防', collapsed: false, items: sidebarItems(intranet.key) }
   ]
 }
 
@@ -95,8 +95,8 @@ function tokenizeForCJK(text: string): string[] {
 }
 
 export default withMermaid({
-  title: 'Security Path Finding',
-  description: 'Notes on Java Code Audit and Intranet Penetration & Defense',
+  title: '安全学习之路',
+  description: 'Java 代码审计与内网攻防学习笔记',
   lang: 'zh-CN',
   base: BASE,
   cleanUrls: true,
@@ -137,9 +137,9 @@ export default withMermaid({
   ],
   themeConfig: {
     nav: [
-      { text: 'Home', link: '/' },
-      { text: 'Code Audit', link: '/java-audit/' },
-      { text: 'Intranet Penetration & Defense', link: '/intranet/' }
+      { text: '首页', link: '/' },
+      { text: '代码审计', link: '/java-audit/' },
+      { text: '内网攻防', link: '/intranet/' }
     ],
     search: {
       provider: 'local',
