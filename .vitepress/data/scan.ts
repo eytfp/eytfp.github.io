@@ -2,13 +2,34 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { numLevel, compareNumPath } from '../shared/hierarchy'
 
-// 文章分区：key 是相对仓库根的目录路径，label 用于左侧导航
-export const SECTIONS = [
-  { key: 'java-audit/theory', label: '理论', group: 'code' },
-  { key: 'java-audit/practice', label: '实践', group: 'code' },
-  { key: 'java-audit/misc', label: '其它', group: 'code' },
-  { key: 'intranet', label: '内网攻防', group: 'intranet' }
+// 顶层大类固定两个；子分类由 buildSections() 自动扫描目录发现。
+// 以后在 java-audit/ 或 security/ 下新建任意子文件夹（用中文名），导航和列表会自动出现。
+export const TOP_CATEGORIES = [
+  { key: 'java-audit', label: '代码审计' },
+  { key: 'security', label: '网络安全' }
 ]
+
+export interface Section {
+  key: string
+  label: string
+  group: string
+}
+
+/** 自动扫描：每个大类下的直接子文件夹就是一个分类，文件夹名即显示名。 */
+export function buildSections(root: string): Section[] {
+  const out: Section[] = []
+  for (const cat of TOP_CATEGORIES) {
+    const base = path.join(root, cat.key)
+    if (!fs.existsSync(base)) continue
+    const subs = fs.readdirSync(base, { withFileTypes: true })
+      .filter(d => d.isDirectory() && !d.name.startsWith('.') && d.name !== 'index.md')
+      .sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'))
+    for (const sub of subs) {
+      out.push({ key: `${cat.key}/${sub.name}`, label: sub.name, group: cat.key })
+    }
+  }
+  return out
+}
 
 export const OK_ATTACH = ['pdf', 'doc', 'docx']
 export const OK_EXT = ['md', ...OK_ATTACH]

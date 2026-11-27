@@ -1,7 +1,7 @@
 import { withMermaid } from 'vitepress-plugin-mermaid'
 import fs from 'node:fs'
 import path from 'node:path'
-import { SECTIONS, OK_ATTACH, scanSection, type ScannedPost } from './data/scan'
+import { TOP_CATEGORIES, buildSections, OK_ATTACH, scanSection, type ScannedPost } from './data/scan'
 import { parentNum } from './shared/hierarchy'
 
 const BASE = '/'
@@ -41,18 +41,17 @@ function sidebarItems(key: string): SidebarNode[] {
   return build('')
 }
 
-// 构建时扫描文章目录，生成左侧全站文章导航（新文章自动出现，无需手动维护）
+// 构建时自动扫描目录生成左侧导航：两大类固定，子分类由文件夹自动生成。
+// 以后在 java-audit/ 或 security/ 下新建中文子文件夹，导航自动多一项，无需改代码。
 function buildSidebar() {
-  const codeItems = SECTIONS.filter(s => s.group === 'code').map(s => ({
-    text: s.label,
-    collapsed: false,
-    items: sidebarItems(s.key)
-  }))
-  const intranet = SECTIONS.find(s => s.group === 'intranet')!
-  return [
-  { text: '代码审计', collapsed: false, items: codeItems },
-  { text: '内网攻防', collapsed: false, items: sidebarItems(intranet.key) }
-  ]
+  const root = process.cwd()
+  const sections = buildSections(root)
+  return TOP_CATEGORIES.map(cat => {
+    const children = sections
+      .filter(s => s.group === cat.key)
+      .map(s => ({ text: s.label, collapsed: false, items: sidebarItems(s.key) }))
+    return { text: cat.label, collapsed: false, items: children }
+  })
 }
 
 // 把 pdf/doc/docx 附件复制进实际构建目录（跟随 outDir，便于临时目录验证）
@@ -67,7 +66,7 @@ function copyAttachments() {
       const root = process.cwd()
       const dist = path.resolve(root, outDir)
       if (!fs.existsSync(dist)) return
-      for (const s of SECTIONS) {
+      for (const s of buildSections(root)) {
         const srcDir = path.join(root, s.key)
         const destDir = path.join(dist, s.key)
         if (!fs.existsSync(srcDir)) continue
@@ -96,7 +95,7 @@ function tokenizeForCJK(text: string): string[] {
 
 export default withMermaid({
   title: '安全学习之路',
-  description: 'Java 代码审计与内网攻防学习笔记',
+  description: 'Java 代码审计与网络安全学习笔记',
   lang: 'zh-CN',
   base: BASE,
   cleanUrls: true,
@@ -108,7 +107,7 @@ export default withMermaid({
       // 多个一级标题（长文分章节）→ 目录放正文最前面；只有一个（或无）→ 放在第一个标题后。
       md.core.ruler.push('auto-inline-toc', (state) => {
         const rel = (state.env.relativePath || '').replace(/\\/g, '/')
-        const isArticle = SECTIONS.some(s => rel.startsWith(`${s.key}/`)) && !rel.endsWith('/index.md')
+        const isArticle = TOP_CATEGORIES.some(c => rel.startsWith(`${c.key}/`)) && !rel.endsWith('/index.md')
         if (!isArticle) return true
         const open = new state.Token('html_inline', '', 0)
         open.content = '<InlineToc />'
@@ -139,7 +138,7 @@ export default withMermaid({
     nav: [
       { text: '首页', link: '/' },
       { text: '代码审计', link: '/java-audit/' },
-      { text: '内网攻防', link: '/intranet/' }
+      { text: '网络安全', link: '/security/' }
     ],
     search: {
       provider: 'local',

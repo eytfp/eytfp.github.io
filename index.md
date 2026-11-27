@@ -2,7 +2,7 @@
 layout: home
 hero:
   name: 安全学习之路
-  text: 记录 Java 代码审计与内网攻防的学习过程
+  text: 记录 Java 代码审计与网络安全的学习过程
   tagline: 内容可能有些错误，多多包涵
   actions:
     - theme: brand
@@ -14,9 +14,9 @@ features:
     details: Java 代码审计的学习记录，从入门开始。内容仅代表个人理解，准确性有待考究，欢迎指正。
     link: /java-audit/
   - icon: 🏰
-    title: 内网攻防
-    details: 内网方向刚刚起步，内容后续更新，敬请期待。
-    link: /intranet/
+    title: 网络安全
+    details: 内网、Web、CTF 等各类安全笔记，持续更新中。
+    link: /security/
 ---
 
 ## 全部文章
